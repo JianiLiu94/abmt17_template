@@ -30,7 +30,7 @@ import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerMod
  */
 public class RunScenarioExample {
 	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig(args[0]); // Load the config file (command line argument)
+		Config config = ConfigUtils.loadConfig("E:/ETH Semester 3/JAVA/abmt17_template/scenario/astra_config.xml"); // Load the config file (command line argument)
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 		Controler controler = new Controler(scenario); // Set up simulation controller
