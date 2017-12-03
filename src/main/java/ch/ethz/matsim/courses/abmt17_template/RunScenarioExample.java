@@ -1,9 +1,14 @@
 package ch.ethz.matsim.courses.abmt17_template;
 
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.population.Leg;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.PlanElement;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.population.PersonUtils;
 import org.matsim.core.scenario.ScenarioUtils;
 
 import abmt17.pt.ABMTPTModule;
@@ -24,15 +29,28 @@ import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerMod
  * can choose "RunScenarioExample". Click on "Arguments" and 
  * set the command line arguments to "abmt_config.xml".
  * 
- * Furthermore, add the following to VM aruments:
+ * Furthermore, add the following to VM arguments:
  * -Xmx10G 
  * It will tell Java to use up to 10GB of RAM for the simulation.
  */
 public class RunScenarioExample {
 	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig("E:/ETH Semester 3/JAVA/abmt17_template/scenario/astra_config.xml"); // Load the config file (command line argument)
+		Config config = ConfigUtils.loadConfig("E:/ETH Semester 3/JAVA/abmt17_template/scenario/oldScenario/astra_config.xml"); // Load the config file (command line argument)
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
+
+		setCaravail.set(scenario, "E:/ETH Semester 3/JAVA/abmt17_template/scenario/oldScenario/population_in_old.csv");
+		
+		Population population = scenario.getPopulation();
+		for (Person pe: population.getPersons().values()){
+	    	for(PlanElement ele: pe.getSelectedPlan().getPlanElements()){
+	    		if (ele instanceof Leg){ //could also be Activity
+	    			if (((Leg)ele).getMode().equals("car"))
+	    				System.out.println(((Leg)ele).getMode()+pe.getId());    			
+	    		}
+	    	}
+		}
+		
 		Controler controler = new Controler(scenario); // Set up simulation controller
 
 		// Some additional modules to create a more realistic simulation
@@ -42,4 +60,5 @@ public class RunScenarioExample {
 
 		controler.run();
 	}
+
 }
