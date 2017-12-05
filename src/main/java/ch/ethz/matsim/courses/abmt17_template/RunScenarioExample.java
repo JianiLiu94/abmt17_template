@@ -1,19 +1,47 @@
 package ch.ethz.matsim.courses.abmt17_template;
 
 import org.matsim.api.core.v01.Scenario;
+import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.PlanElement;
 import org.matsim.api.core.v01.population.Population;
+import org.matsim.contrib.carsharing.runExample.RunCarsharing;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PersonUtils;
+import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
+import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
+
+import com.google.inject.Provides;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 
 import abmt17.pt.ABMTPTModule;
 import abmt17.scoring.ABMTScoringModule;
 import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerModule;
+import ch.ethz.matsim.mode_choice.ModeChoiceModel;
+import ch.ethz.matsim.mode_choice.alternatives.ChainAlternatives;
+import ch.ethz.matsim.mode_choice.alternatives.TripChainAlternatives;
+import ch.ethz.matsim.mode_choice.mnl.BasicModeChoiceAlternative;
+import ch.ethz.matsim.mode_choice.mnl.BasicModeChoiceParameters;
+import ch.ethz.matsim.mode_choice.mnl.ModeChoiceMNL;
+import ch.ethz.matsim.mode_choice.mnl.prediction.CrowflyDistancePredictor;
+import ch.ethz.matsim.mode_choice.mnl.prediction.FixedSpeedPredictor;
+import ch.ethz.matsim.mode_choice.mnl.prediction.HashPredictionCache;
+import ch.ethz.matsim.mode_choice.mnl.prediction.NetworkPathPredictor;
+import ch.ethz.matsim.mode_choice.mnl.prediction.PredictionCache;
+import ch.ethz.matsim.mode_choice.mnl.prediction.PredictionCacheCleaner;
+import ch.ethz.matsim.mode_choice.mnl.prediction.TripPredictor;
+import ch.ethz.matsim.mode_choice.replanning.ModeChoiceStrategy;
+import ch.ethz.matsim.mode_choice.run.MNLConfigGroup;
+import ch.ethz.matsim.mode_choice.run.RemoveLongPlans;
+import ch.ethz.matsim.mode_choice.selectors.OldPlanForRemovalSelector;
+import ch.ethz.matsim.mode_choice.utils.QueueBasedThreadSafeDijkstra;
 
 /**
  * This is the template for the 2017 ABMT course at ETHZ
@@ -35,7 +63,7 @@ import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerMod
  */
 public class RunScenarioExample {
 	static public void main(String[] args) {
-		Config config = ConfigUtils.loadConfig("E:/ETH Semester 3/JAVA/abmt17_template/scenario/oldScenario/astra_config.xml"); // Load the config file (command line argument)
+		Config config = ConfigUtils.loadConfig(args[0], new MNLConfigGroup()); // Load the config file (command line argument)
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 
@@ -52,6 +80,86 @@ public class RunScenarioExample {
 		}
 		
 		Controler controler = new Controler(scenario); // Set up simulation controller
+		RunCarsharing.installCarSharing(controler);
+		
+		config.strategy().setMaxAgentPlanMemorySize(1);
+
+
+		new RemoveLongPlans(10).run(scenario.getPopulation());
+
+		// Set up MNL
+
+		controler.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				addControlerListenerBinding().to(PredictionCacheCleaner.class);
+			}
+			
+			@Singleton @Provides
+			public PredictionCacheCleaner providePredictionCacheCleaner(PredictionCache cache) {
+				return new PredictionCacheCleaner(cache);
+			}
+			
+			@Singleton @Provides
+			public PredictionCache providePredictionCache() {
+				return new HashPredictionCache();
+			}
+
+			@Singleton
+			@Provides
+			public ModeChoiceModel provideModeChoiceModel(Network network, @Named("car") TravelTime travelTime,
+					MNLConfigGroup mnlConfig, PredictionCache cache) {
+				ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
+				ModeChoiceMNL model = new ModeChoiceMNL(MatsimRandom.getRandom(), chainAlternatives,
+						scenario.getNetwork(), mnlConfig.getMode());
+
+				BasicModeChoiceParameters carParameters = new BasicModeChoiceParameters(0.0, -0.176 / 1000.0,
+						-23.29 / 3600.0, true);
+				//JL: add car sharing
+				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(0.0, -0.25 / 1000.0,
+						-14.43 / 3600.0, false);
+				BasicModeChoiceParameters walkParameters = new BasicModeChoiceParameters(0.0, 0.0, -33.2 / 3600.0,
+						false);
+				//JL: BasicModeChoiceParameters bikeParameters = new BasicModeChoiceParameters(0.0, 0.0, -33.2 / 3600.0,
+					//	true);
+				
+				TripPredictor carPredictor = null;
+
+				switch (mnlConfig.getCarUtility()) {
+				case NETWORK:
+					carPredictor = new NetworkPathPredictor(
+							new QueueBasedThreadSafeDijkstra(mnlConfig.getNumberOfThreads(), network,
+									new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
+					break;
+				case CROWFLY:
+					carPredictor = new FixedSpeedPredictor(30.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor());
+					break;
+				default:
+					throw new IllegalStateException();
+				}
+				
+				model.addModeAlternative("car", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
+				//JL: model.addModeAlternative("freefloating", new CarsharingModeChoiceAlternative(carParameters, carPredictor, cache));
+                //estimate access distance from last iteration by events-EndRentalEvent
+				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
+						new FixedSpeedPredictor(12.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
+						new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+				model.addModeAlternative("bike", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
+				//new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+
+				return model;
+			}
+		});
+
+		controler.addOverridingModule(new AbstractModule() {
+			@Override
+			public void install() {
+				this.bindPlanSelectorForRemoval().to(OldPlanForRemovalSelector.class);
+				this.addPlanStrategyBinding("ModeChoiceStrategy").toProvider(ModeChoiceStrategy.class);
+			}
+		});
+		
 
 		// Some additional modules to create a more realistic simulation
 		controler.addOverridingModule(new ABMTScoringModule()); // Required if scoring of activities is used
