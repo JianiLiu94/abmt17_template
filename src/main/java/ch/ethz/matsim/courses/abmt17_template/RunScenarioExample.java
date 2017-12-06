@@ -1,5 +1,7 @@
 package ch.ethz.matsim.courses.abmt17_template;
 
+import java.util.List;
+
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.population.Leg;
@@ -11,6 +13,7 @@ import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.population.PersonUtils;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
@@ -24,6 +27,8 @@ import com.google.inject.name.Named;
 import abmt17.pt.ABMTPTModule;
 import abmt17.scoring.ABMTScoringModule;
 import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerModule;
+import ch.ethz.matsim.courses.abmt17_template.utils.MembershipScript;
+import ch.ethz.matsim.courses.abmt17_template.utils.SupplyScript;
 import ch.ethz.matsim.mode_choice.ModeChoiceModel;
 import ch.ethz.matsim.mode_choice.alternatives.ChainAlternatives;
 import ch.ethz.matsim.mode_choice.alternatives.TripChainAlternatives;
@@ -42,6 +47,7 @@ import ch.ethz.matsim.mode_choice.run.MNLConfigGroup;
 import ch.ethz.matsim.mode_choice.run.RemoveLongPlans;
 import ch.ethz.matsim.mode_choice.selectors.OldPlanForRemovalSelector;
 import ch.ethz.matsim.mode_choice.utils.QueueBasedThreadSafeDijkstra;
+
 
 /**
  * This is the template for the 2017 ABMT course at ETHZ
@@ -67,18 +73,10 @@ public class RunScenarioExample {
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 
-		setCaravail.set(scenario, "E:/ETH Semester 3/JAVA/abmt17_template/scenario/oldScenario/population_in_old.csv");
-		
-		Population population = scenario.getPopulation();
-		for (Person pe: population.getPersons().values()){
-	    	for(PlanElement ele: pe.getSelectedPlan().getPlanElements()){
-	    		if (ele instanceof Leg){ //could also be Activity
-	    			if (((Leg)ele).getMode().equals("car"))
-	    				System.out.println(((Leg)ele).getMode()+pe.getId());    			
-	    		}
-	    	}
-		}
-		
+		String[] inIDlist = setCaravail.set(scenario, args[1]);
+		MembershipScript.main(new String[] {args[1],args[2]}, inIDlist);
+		SupplyScript.main(new String[] {args[3],args[4]});
+				
 		Controler controler = new Controler(scenario); // Set up simulation controller
 		RunCarsharing.installCarSharing(controler);
 		
@@ -108,20 +106,21 @@ public class RunScenarioExample {
 			@Singleton
 			@Provides
 			public ModeChoiceModel provideModeChoiceModel(Network network, @Named("car") TravelTime travelTime,
-					MNLConfigGroup mnlConfig, PredictionCache cache) {
+					MNLConfigGroup mnlConfig, PredictionCache cache){
 				ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
 				ModeChoiceMNL model = new ModeChoiceMNL(MatsimRandom.getRandom(), chainAlternatives,
 						scenario.getNetwork(), mnlConfig.getMode());
 
-				BasicModeChoiceParameters carParameters = new BasicModeChoiceParameters(0.0, -0.176 / 1000.0,
+				//BasicModeChoiceParameters carParameters = new BasicModeChoiceParameters(0.0, -0.176 / 1000.0,
 						-23.29 / 3600.0, true);
-				//JL: add car sharing
-				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(0.0, -0.25 / 1000.0,
-						-14.43 / 3600.0, false);
-				BasicModeChoiceParameters walkParameters = new BasicModeChoiceParameters(0.0, 0.0, -33.2 / 3600.0,
+				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(-2.897, -0.26 / 1000.0,
+						-11.58 / 3600.0, false);
+				BasicModeChoiceParameters walkParameters = new BasicModeChoiceParameters(0.0, 0.0, -14.799 / 3600.0,
 						false);
-				//JL: BasicModeChoiceParameters bikeParameters = new BasicModeChoiceParameters(0.0, 0.0, -33.2 / 3600.0,
-					//	true);
+				BasicModeChoiceParameters bikeParameters = new BasicModeChoiceParameters(-1.662, 0.0, -16.277 / 3600.0,
+					    true);
+				BasicModeChoiceParameters freefloatingParameters = new BasicModeChoiceParameters(-0.314, -0.7718/1000.0, -36.5225 / 3600.0,
+						false);
 				
 				TripPredictor carPredictor = null;
 
@@ -138,14 +137,15 @@ public class RunScenarioExample {
 					throw new IllegalStateException();
 				}
 				
-				model.addModeAlternative("car", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
-				//JL: model.addModeAlternative("freefloating", new CarsharingModeChoiceAlternative(carParameters, carPredictor, cache));
-                //estimate access distance from last iteration by events-EndRentalEvent
+				//model.addModeAlternative("car", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
+				model.addModeAlternative("freefloating", new BasicModeChoiceAlternative(freefloatingParameters, carPredictor, cache));
 				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
 						new FixedSpeedPredictor(12.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
 				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
 						new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
-				model.addModeAlternative("bike", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
+				model.addModeAlternative("bike", new BasicModeChoiceAlternative(bikeParameters, new FixedSpeedPredictor(10.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+				
+				
 				//new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
 
 				return model;
@@ -166,6 +166,11 @@ public class RunScenarioExample {
 		controler.addOverridingModule(new ABMTPTModule()); // More realistic "teleportation" of public transport trips
 		controler.addOverridingModule(new ModeShareListenerModule()); // Writes correct mode shares in every iteration
 
+		//controler.getEvents().addHandler(new EventHandler());
+		
+
+
+		
 		controler.run();
 	}
 
