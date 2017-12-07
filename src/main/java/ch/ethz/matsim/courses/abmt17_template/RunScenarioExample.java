@@ -27,6 +27,7 @@ import com.google.inject.name.Named;
 import abmt17.pt.ABMTPTModule;
 import abmt17.scoring.ABMTScoringModule;
 import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerModule;
+import ch.ethz.matsim.courses.abmt17_template.events.MyStartRentalEventHandler;
 import ch.ethz.matsim.courses.abmt17_template.utils.MembershipScript;
 import ch.ethz.matsim.courses.abmt17_template.utils.SupplyScript;
 import ch.ethz.matsim.mode_choice.ModeChoiceModel;
@@ -47,6 +48,7 @@ import ch.ethz.matsim.mode_choice.run.MNLConfigGroup;
 import ch.ethz.matsim.mode_choice.run.RemoveLongPlans;
 import ch.ethz.matsim.mode_choice.selectors.OldPlanForRemovalSelector;
 import ch.ethz.matsim.mode_choice.utils.QueueBasedThreadSafeDijkstra;
+import events.MyXYEventHandler;
 
 
 /**
@@ -165,12 +167,12 @@ public class RunScenarioExample {
 		controler.addOverridingModule(new ABMTPTModule()); // More realistic "teleportation" of public transport trips
 		controler.addOverridingModule(new ModeShareListenerModule()); // Writes correct mode shares in every iteration
 
-		//controler.getEvents().addHandler(new EventHandler());
-		
-
-
-		
+		MyStartRentalEventHandler myHandler = new MyStartRentalEventHandler(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork());
+		controler.getEvents().addHandler(myHandler);
+		controler.addControlerListener(myHandler);
+				
 		controler.run();
+		myHandler.close();
 	}
 
 }
