@@ -102,17 +102,14 @@ public class RunScenarioExample {
 			public PredictionCache providePredictionCache() {
 				return new HashPredictionCache();
 			}
-
+			
 			@Singleton
 			@Provides
 			public ModeChoiceModel provideModeChoiceModel(Network network, @Named("car") TravelTime travelTime,
-					MNLConfigGroup mnlConfig, PredictionCache cache){
-				ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
+					MNLConfigGroup mnlConfig, PredictionCache cache){ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
 				ModeChoiceMNL model = new ModeChoiceMNL(MatsimRandom.getRandom(), chainAlternatives,
-						scenario.getNetwork(), mnlConfig.getMode());
-
-				//BasicModeChoiceParameters carParameters = new BasicModeChoiceParameters(0.0, -0.176 / 1000.0,
-						-23.29 / 3600.0, true);
+						scenario.getNetwork(), mnlConfig.getMode());			
+				
 				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(-2.897, -0.26 / 1000.0,
 						-11.58 / 3600.0, false);
 				BasicModeChoiceParameters walkParameters = new BasicModeChoiceParameters(0.0, 0.0, -14.799 / 3600.0,
@@ -137,20 +134,21 @@ public class RunScenarioExample {
 					throw new IllegalStateException();
 				}
 				
-				//model.addModeAlternative("car", new BasicModeChoiceAlternative(carParameters, carPredictor, cache));
 				model.addModeAlternative("freefloating", new BasicModeChoiceAlternative(freefloatingParameters, carPredictor, cache));
 				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
 						new FixedSpeedPredictor(12.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
 				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
 						new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
-				model.addModeAlternative("bike", new BasicModeChoiceAlternative(bikeParameters, new FixedSpeedPredictor(10.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+				model.addModeAlternative("bike", new BasicModeChoiceAlternative(bikeParameters, 
+						new FixedSpeedPredictor(10.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
 				
 				
-				//new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
-
 				return model;
 			}
 		});
+		
+		
+		//MNLModel.setUpModelWithRoutedPT(controler);
 
 		controler.addOverridingModule(new AbstractModule() {
 			@Override
@@ -158,6 +156,7 @@ public class RunScenarioExample {
 				this.bindPlanSelectorForRemoval().to(OldPlanForRemovalSelector.class);
 				this.addPlanStrategyBinding("ModeChoiceStrategy").toProvider(ModeChoiceStrategy.class);
 			}
+
 		});
 		
 
