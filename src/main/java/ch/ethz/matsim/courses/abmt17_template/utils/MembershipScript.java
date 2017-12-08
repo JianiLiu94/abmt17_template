@@ -25,28 +25,29 @@ import org.matsim.core.utils.io.MatsimXmlWriter;
 public class MembershipScript extends MatsimXmlWriter {
 	
 	private Scenario scenario;
+	private static List<String> inList;
 	
 	public MembershipScript(Scenario scenario) {
 		this.scenario = scenario;
 	}
 	
-	public void write(String file,String[] list) {
+	public void write(String file) {
 		openFile(file);
 		
 		writeXmlHead();
 		
 		writeStartTag("memberships", null);
-		writeMembership(list);
+		writeMembership();
 		writeEndTag("memberships");
 
 		close();
 	}
 	
-	private void writeMembership(String[] list) {
+	private void writeMembership() {
 		//TODO: you need to add a check if the person is living in the city
 		//if it is add a membership card.
 		for (Person person : this.scenario.getPopulation().getPersons().values()) {			
-			if (Arrays.asList(list).contains(person.getId().toString()))	
+			if (Arrays.asList(inList).contains(person.getId().toString()))	
 				writePerson(person);		
 		}
 	}
@@ -74,7 +75,7 @@ public class MembershipScript extends MatsimXmlWriter {
 	}
 	
 
-	public static void main(String[] args, String[] list) {
+	public static void main(String[] args) {
 
 		Config config = ConfigUtils.createConfig();
 		
@@ -84,10 +85,23 @@ public class MembershipScript extends MatsimXmlWriter {
 		//input population file
 		populationReader.readFile(args[0]);	
 		//??I found out populationReader.readFile is to read plan files. Why do we need plan file here?
-						
+	
+		try (BufferedReader reader = new BufferedReader(new FileReader(args[2]))){
+			String line=reader.readLine();
+			while(line!=null){				
+				String[] fields = line.split(",");
+				inList.add(fields[1]);
+				line=reader.readLine();
+			}
+		}
+		catch (IOException e){
+			throw new RuntimeException(e);
+		}
+		
+		
 		MembershipScript as = new MembershipScript(scenario);
 		//output file i.e. membership.xml
-		as.write(args[1],list);
+		as.write(args[1]);
 		
 	}
 

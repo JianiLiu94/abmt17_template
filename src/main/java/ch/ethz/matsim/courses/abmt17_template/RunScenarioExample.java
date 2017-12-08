@@ -143,13 +143,13 @@ public class RunScenarioExample {
 					throw new IllegalStateException();
 				}
 				
-				model.addModeAlternative("freefloating", new CarSharingModeChoiceAlternative(freefloatingParameters, carPredictor, cache));
+				model.addModeAlternative("freefloating", new CarSharingModeChoiceAlternative(freefloatingParameters, carPredictor, cache, myHandler));
 				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
-						new FixedSpeedPredictor(12.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+						new FixedSpeedPredictor(11.11111111111111, new CrowflyDistancePredictor())));
 				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
-						new FixedSpeedPredictor(8.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+						new FixedSpeedPredictor(1.3888888888888888, new CrowflyDistancePredictor())));
 				model.addModeAlternative("bike", new BasicModeChoiceAlternative(bikeParameters, 
-						new FixedSpeedPredictor(10.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
+						new FixedSpeedPredictor(3.611111111111111, new CrowflyDistancePredictor())));
 				
 				
 				return model;
