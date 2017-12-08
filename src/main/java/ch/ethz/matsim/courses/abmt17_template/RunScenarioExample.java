@@ -48,7 +48,6 @@ import ch.ethz.matsim.mode_choice.run.MNLConfigGroup;
 import ch.ethz.matsim.mode_choice.run.RemoveLongPlans;
 import ch.ethz.matsim.mode_choice.selectors.OldPlanForRemovalSelector;
 import ch.ethz.matsim.mode_choice.utils.QueueBasedThreadSafeDijkstra;
-import events.MyXYEventHandler;
 
 
 /**
@@ -118,8 +117,8 @@ public class RunScenarioExample {
 						false);
 				BasicModeChoiceParameters bikeParameters = new BasicModeChoiceParameters(-1.662, 0.0, -16.277 / 3600.0,
 					    true);
-				BasicModeChoiceParameters freefloatingParameters = new BasicModeChoiceParameters(-0.314, -0.7718/1000.0, -36.5225 / 3600.0,
-						false);
+				CarSharingChoiceParameters freefloatingParameters = new CarSharingChoiceParameters(-0.314, -0.7718/1000.0, -36.5225 / 3600.0,
+						-0.244, false);
 				
 				TripPredictor carPredictor = null;
 
@@ -136,7 +135,7 @@ public class RunScenarioExample {
 					throw new IllegalStateException();
 				}
 				
-				model.addModeAlternative("freefloating", new BasicModeChoiceAlternative(freefloatingParameters, carPredictor, cache));
+				model.addModeAlternative("freefloating", new CarSharingModeChoiceAlternative(freefloatingParameters, carPredictor, cache));
 				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
 						new FixedSpeedPredictor(12.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor())));
 				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
