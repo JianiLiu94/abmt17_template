@@ -22,6 +22,7 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 //	}
 	
 	//??tells me this constructor must come before.... but this is not the case in in BasicModeChoice Alternative?
+	//still has this error when it is placed first??
 
 	
 	public CarSharingModeChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor,
@@ -41,14 +42,18 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 			cache.put(trip, prediction);
 		}
 		
-
-		
-		//return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
-			//	+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
-				//+ params.getBetaDistanceToCar() * ffCarDistances[(int)event.getTime()];
-		return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
-				+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
-				+ params.getBetaDistanceToCar() * eventHandler.getEsti()[(int)(trip.getDepartureTime()/3600)];
+		if( eventHandler.getIteration() == 1) {
+			int avgDist = 200;
+			
+			return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
+					+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
+					+ params.getBetaDistanceToCar() * avgDist;
+			
+		}else {
+			return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
+					+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
+					+ params.getBetaDistanceToCar() * eventHandler.getEsti()[(int)(trip.getDepartureTime()/3600)];
+		}
 	}
 
 	@Override
