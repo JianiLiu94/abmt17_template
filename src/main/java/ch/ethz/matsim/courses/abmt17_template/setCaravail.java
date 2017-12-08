@@ -20,14 +20,14 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 public class setCaravail {
 	
-	static public String[] set(Scenario scenario, String file){
-		List<String> IDlist = new ArrayList<String>();
+	static public void set(Scenario scenario, String file){
+
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))){
 			String line=reader.readLine();
 			while(line!=null){
 				
 				String[] fields = line.split(",");
-				IDlist.add(fields[1]);
+
 				if (!fields[2].equals("never")&&!fields[2].equals("Car") ){
 					Id<Person> personID = Id.createPersonId(fields[1]);
 					PersonUtils.setCarAvail(scenario.getPopulation().getPersons().get(personID), "never");
@@ -39,8 +39,8 @@ public class setCaravail {
 		catch (IOException e){
 			throw new RuntimeException(e);
 		}
-		String[] list = IDlist.stream().toArray(String[]::new);
-		return list;
+
+
 	}
 
 	private static void setPlanMode(Person person) {

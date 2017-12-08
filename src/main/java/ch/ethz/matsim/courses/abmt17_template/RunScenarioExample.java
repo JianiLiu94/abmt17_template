@@ -74,15 +74,23 @@ public class RunScenarioExample {
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 
-		String[] inIDlist = setCaravail.set(scenario, args[1]);
-		MembershipScript.main(new String[] {args[1],args[2]}, inIDlist);
-		SupplyScript.main(new String[] {args[3],args[4]});
-				
+		setCaravail.set(scenario, args[1]);
+
 		Controler controler = new Controler(scenario); // Set up simulation controller
 		RunCarsharing.installCarSharing(controler);
 		
 		config.strategy().setMaxAgentPlanMemorySize(1);
-
+		
+		
+		
+		
+		MyStartRentalEventHandler myHandler = new MyStartRentalEventHandler(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork());
+		controler.getEvents().addHandler(myHandler);
+		controler.addControlerListener(myHandler);
+		
+		
+		
+		
 
 		new RemoveLongPlans(10).run(scenario.getPopulation());
 
@@ -166,11 +174,10 @@ public class RunScenarioExample {
 		controler.addOverridingModule(new ABMTPTModule()); // More realistic "teleportation" of public transport trips
 		controler.addOverridingModule(new ModeShareListenerModule()); // Writes correct mode shares in every iteration
 
-		MyStartRentalEventHandler myHandler = new MyStartRentalEventHandler(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork());
-		controler.getEvents().addHandler(myHandler);
-		controler.addControlerListener(myHandler);
-				
+
 		controler.run();
+		
+		
 		myHandler.close();
 	}
 

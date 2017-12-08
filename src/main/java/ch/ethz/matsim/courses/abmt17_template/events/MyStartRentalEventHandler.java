@@ -30,6 +30,7 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	private final Network network;
 	public double[] distances;
 	public int[] amountVehicles;
+	public double[] distanceLastIte;
 
 	public MyStartRentalEventHandler (String filePath, Network network){
 		this.filePath=filePath;
@@ -43,7 +44,11 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	}
 	
 	public double[] getEsti(){
-		return distances;
+		return distanceLastIte;
+	}
+	
+	public int getIteration(){
+		return iteration;
 	}
 	
 	@Override
@@ -107,7 +112,7 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// TODO Auto-generated method stub
 		for (int i=0; i<24;i++){
-			distances[i] = distances[i]/amountVehicles[i];
+			distanceLastIte[i] = distances[i]/amountVehicles[i];
 		}
 	}
 

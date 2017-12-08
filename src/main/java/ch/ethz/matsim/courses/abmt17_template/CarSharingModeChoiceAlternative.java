@@ -14,20 +14,23 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 	final private CarSharingChoiceParameters params;
 	final private TripPredictor tripPredictor;
 	final private PredictionCache cache;
-	//final private MyStartRentalEventHandler eventHandler;
+	final private MyStartRentalEventHandler eventHandler;
 
-	public CarSharingModeChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor,
-			PredictionCache cache) {
-		this.params = params;
-		this.tripPredictor = tripPredictor;
-		this.cache = cache;
-	}
-
-//	public CarSharingChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor) {
-//		this(params, tripPredictor, new EmptyPredictionCache());
+	
+//	public CarSharingChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor, MyStartRentalEventHandler eventHandler) {
+//		this(params, tripPredictor, new EmptyPredictionCache(), eventHandler);
 //	}
 	
 	//??tells me this constructor must come before.... but this is not the case in in BasicModeChoice Alternative?
+
+	
+	public CarSharingModeChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor,
+			PredictionCache cache, MyStartRentalEventHandler eventHandler) {
+		this.params = params;
+		this.tripPredictor = tripPredictor;
+		this.cache = cache;
+		this.eventHandler = eventHandler;
+	}
 
 	@Override
 	public double estimateUtility(ModeChoiceTrip trip) {
@@ -38,13 +41,14 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 			cache.put(trip, prediction);
 		}
 		
-//		StartRentalEvent event = new StartRentalEvent();
-		MyStartRentalEventHandler eventHandler;
-		double[] ffCarDistances = eventHandler.getEsti();
+
 		
+		//return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
+			//	+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
+				//+ params.getBetaDistanceToCar() * ffCarDistances[(int)event.getTime()];
 		return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
 				+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
-				+ params.getBetaDistanceToCar() * ffCarDistances[(int)event.getTime()];
+				+ params.getBetaDistanceToCar() * eventHandler.getEsti()[(int)(trip.getDepartureTime()/3600)];
 	}
 
 	@Override
