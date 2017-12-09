@@ -1,21 +1,14 @@
 package ch.ethz.matsim.courses.abmt17_template;
 
-import java.util.List;
-
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
-import org.matsim.api.core.v01.population.Leg;
-import org.matsim.api.core.v01.population.Person;
-import org.matsim.api.core.v01.population.PlanElement;
-import org.matsim.api.core.v01.population.Population;
+import org.matsim.contrib.carsharing.runExample.CarsharingUtils;
 import org.matsim.contrib.carsharing.runExample.RunCarsharing;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
-import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.gbl.MatsimRandom;
-import org.matsim.core.population.PersonUtils;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.TravelTime;
 import org.matsim.core.scenario.ScenarioUtils;
@@ -24,12 +17,9 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 
-import abmt17.pt.ABMTPTModule;
 import abmt17.scoring.ABMTScoringModule;
 import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerModule;
 import ch.ethz.matsim.courses.abmt17_template.events.MyStartRentalEventHandler;
-import ch.ethz.matsim.courses.abmt17_template.utils.MembershipScript;
-import ch.ethz.matsim.courses.abmt17_template.utils.SupplyScript;
 import ch.ethz.matsim.mode_choice.ModeChoiceModel;
 import ch.ethz.matsim.mode_choice.alternatives.ChainAlternatives;
 import ch.ethz.matsim.mode_choice.alternatives.TripChainAlternatives;
@@ -77,6 +67,8 @@ public class RunScenarioExample {
 		setCaravail.set(scenario, args[1]);
 
 		Controler controler = new Controler(scenario); // Set up simulation controller
+		CarsharingUtils.addConfigModules(config);
+
 		RunCarsharing.installCarSharing(controler);
 		
 		config.strategy().setMaxAgentPlanMemorySize(1);
@@ -171,7 +163,7 @@ public class RunScenarioExample {
 
 		// Some additional modules to create a more realistic simulation
 		controler.addOverridingModule(new ABMTScoringModule()); // Required if scoring of activities is used
-		controler.addOverridingModule(new ABMTPTModule()); // More realistic "teleportation" of public transport trips
+	//	controler.addOverridingModule(new ABMTPTModule()); // More realistic "teleportation" of public transport trips
 		controler.addOverridingModule(new ModeShareListenerModule()); // Writes correct mode shares in every iteration
 
 
@@ -179,6 +171,5 @@ public class RunScenarioExample {
 		
 		
 		myHandler.close();
-	}
-
+	}	
 }
