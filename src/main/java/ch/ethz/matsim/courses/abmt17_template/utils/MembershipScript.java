@@ -25,10 +25,11 @@ import org.matsim.core.utils.io.MatsimXmlWriter;
 public class MembershipScript extends MatsimXmlWriter {
 	
 	private Scenario scenario;
-	private static List<String> inList;
+	private List<String> inList;
 	
-	public MembershipScript(Scenario scenario) {
+	public MembershipScript(Scenario scenario, List<String> inList) {
 		this.scenario = scenario;
+		this.inList = inList;
 	}
 	
 	public void write(String file) {
@@ -46,8 +47,11 @@ public class MembershipScript extends MatsimXmlWriter {
 	private void writeMembership() {
 		//TODO: you need to add a check if the person is living in the city
 		//if it is add a membership card.
+
 		for (Person person : this.scenario.getPopulation().getPersons().values()) {			
-			if (Arrays.asList(inList).contains(person.getId().toString()))	
+			if (Arrays.asList(inList).contains(person.getId().toString()))
+				System.out.println(1);
+			// weird, it's never printed but the membership.xml somehow generated
 				writePerson(person);		
 		}
 	}
@@ -81,16 +85,17 @@ public class MembershipScript extends MatsimXmlWriter {
 		
 		MutableScenario scenario = ScenarioUtils.createMutableScenario(config);
 		
+		List<String> inList = new ArrayList<String>();
+		
 		MatsimReader populationReader = new PopulationReader(scenario);		
 		//input population file
 		populationReader.readFile(args[0]);	
-		//??I found out populationReader.readFile is to read plan files. Why do we need plan file here?
 	
 		try (BufferedReader reader = new BufferedReader(new FileReader(args[2]))){
 			String line=reader.readLine();
 			while(line!=null){				
 				String[] fields = line.split(",");
-				inList.add(fields[1]);
+				inList.add(fields[2]);
 				line=reader.readLine();
 			}
 		}
@@ -98,8 +103,9 @@ public class MembershipScript extends MatsimXmlWriter {
 			throw new RuntimeException(e);
 		}
 		
+	
+		MembershipScript as = new MembershipScript(scenario, inList);
 		
-		MembershipScript as = new MembershipScript(scenario);
 		//output file i.e. membership.xml
 		as.write(args[1]);
 		
