@@ -28,8 +28,8 @@ public class setCaravail {
 				
 				String[] fields = line.split(",");
 
-				if (!fields[2].equals("never")&&!fields[2].equals("Car") ){
-					Id<Person> personID = Id.createPersonId(fields[1]);
+				if (!fields[3].equals("never")&&!fields[3].equals("Car") ){
+					Id<Person> personID = Id.createPersonId(fields[2]);
 					PersonUtils.setCarAvail(scenario.getPopulation().getPersons().get(personID), "never");
 					setPlanMode(scenario.getPopulation().getPersons().get(personID));
 				}
