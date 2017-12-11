@@ -16,21 +16,16 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 	final private PredictionCache cache;
 	final private MyStartRentalEventHandler eventHandler;
 
-	
-//	public CarSharingChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor, MyStartRentalEventHandler eventHandler) {
-//		this(params, tripPredictor, new EmptyPredictionCache(), eventHandler);
-//	}
-	
-	//??tells me this constructor must come before.... but this is not the case in in BasicModeChoice Alternative?
-	//still has this error when it is placed first??
-
-	
 	public CarSharingModeChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor,
 			PredictionCache cache, MyStartRentalEventHandler eventHandler) {
 		this.params = params;
 		this.tripPredictor = tripPredictor;
 		this.cache = cache;
 		this.eventHandler = eventHandler;
+	}
+	
+	public CarSharingModeChoiceAlternative(CarSharingChoiceParameters params, TripPredictor tripPredictor, MyStartRentalEventHandler eventHandler) {
+		this(params, tripPredictor, new EmptyPredictionCache(), eventHandler);
 	}
 
 	@Override
