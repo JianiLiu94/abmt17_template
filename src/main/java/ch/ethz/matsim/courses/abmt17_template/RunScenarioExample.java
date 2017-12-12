@@ -2,10 +2,12 @@ package ch.ethz.matsim.courses.abmt17_template;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
+import org.matsim.contrib.carsharing.config.CarsharingConfigGroup;
 import org.matsim.contrib.carsharing.runExample.CarsharingUtils;
 import org.matsim.contrib.carsharing.runExample.RunCarsharing;
 import org.matsim.core.config.Config;
 import org.matsim.core.config.ConfigUtils;
+import org.matsim.contrib.carsharing.config.CarsharingConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
 import org.matsim.core.gbl.MatsimRandom;
@@ -66,15 +68,17 @@ public class RunScenarioExample {
 
 		setCaravail.set(scenario, args[1]);
 
+		
+		
 		Controler controler = new Controler(scenario); // Set up simulation controller
 		CarsharingUtils.addConfigModules(config);
 
+		//new CarsharingConfigGroup configGroup = (CarsharingConfigGroup);
+		((CarsharingConfigGroup)scenario.getConfig().getModule( CarsharingConfigGroup.GROUP_NAME)).setmembership(args[2]);
+		((CarsharingConfigGroup)scenario.getConfig().getModule( CarsharingConfigGroup.GROUP_NAME)).setvehiclelocations(args[3]);
+		
 		RunCarsharing.installCarSharing(controler);
-		
 		config.strategy().setMaxAgentPlanMemorySize(1);
-		
-		
-		
 		
 		MyStartRentalEventHandler myHandler = new MyStartRentalEventHandler(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork());
 		controler.getEvents().addHandler(myHandler);
