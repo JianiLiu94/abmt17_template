@@ -74,9 +74,7 @@ public class RunScenarioExample {
 		CarsharingUtils.addConfigModules(config);
 
 		//new CarsharingConfigGroup configGroup = (CarsharingConfigGroup);
-		((CarsharingConfigGroup)scenario.getConfig().getModule( CarsharingConfigGroup.GROUP_NAME)).setmembership(args[2]);
-		((CarsharingConfigGroup)scenario.getConfig().getModule( CarsharingConfigGroup.GROUP_NAME)).setvehiclelocations(args[3]);
-		
+
 		RunCarsharing.installCarSharing(controler);
 		config.strategy().setMaxAgentPlanMemorySize(1);
 		

@@ -30,7 +30,7 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	private final Network network;
 	public double[] distances;
 	public int[] amountVehicles;
-	public double[] distanceLastIte;
+	public double[] distanceLastIte = new double[30];
 
 	public MyStartRentalEventHandler (String filePath, Network network){
 		this.filePath=filePath;
@@ -39,8 +39,8 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	
 	public void reset(int iteration) {
 		this.iteration = iteration;
-		this.distances = new double[24];
-		this.amountVehicles = new int[24]; 
+		this.distances = new double[30];
+		this.amountVehicles = new int[30]; 
 	}
 	
 	public double[] getEsti(){
@@ -111,8 +111,10 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 	@Override
 	public void notifyIterationEnds(IterationEndsEvent event) {
 		// TODO Auto-generated method stub
-		for (int i=0; i<24;i++){
+		for (int i=0; i<30;i++){
+			if (amountVehicles[i]!=0){
 			distanceLastIte[i] = distances[i]/amountVehicles[i];
+		}
 		}
 	}
 
