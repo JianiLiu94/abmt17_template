@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Link;
 import org.matsim.api.core.v01.network.Network;
@@ -64,11 +65,17 @@ public class SupplyScript extends MatsimXmlWriter {
 		//between two coordinates CoordUtils.calcEuclideanDistance(coord1, coord2)
 		//CoordUtils.createCoord(xx, yy) can create a coordinate object with those coordinates above.
 		//link.getCoord() gives you coordinate of the link
+		Coord center = CoordUtils.createCoord(2683217, 1247300);
 		for (int i = 0; i < cars; i++) {
 			
 			Link link = (Link) array[r.nextInt(numberLinks)];
-			writeVehicle(link, counter, r);
-			counter++;
+			if (CoordUtils.calcEuclideanDistance(link.getCoord(), center)<=8000){
+				writeVehicle(link, counter, r);
+				counter++;
+			}
+			else{
+				i--;
+			}
 		}		
 	}
 

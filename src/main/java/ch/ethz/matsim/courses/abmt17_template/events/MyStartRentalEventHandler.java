@@ -114,6 +114,7 @@ public class MyStartRentalEventHandler implements StartRentalEventHandler, Start
 		for (int i=0; i<30;i++){
 			if (amountVehicles[i]!=0){
 			distanceLastIte[i] = distances[i]/amountVehicles[i];
+			System.out.println("iteration no: " + this.iteration + " distance at time"+i + " is "+distanceLastIte[i]);
 		}
 		}
 	}

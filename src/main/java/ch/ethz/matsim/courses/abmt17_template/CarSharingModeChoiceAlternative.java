@@ -37,15 +37,22 @@ public class CarSharingModeChoiceAlternative implements ModeChoiceAlternative{
 			cache.put(trip, prediction);
 		}
 		
-		if( eventHandler.getIteration() == 1) {
-			int avgDist = 200;
+		if( eventHandler.getIteration() == 0) {
+			int avgDist = 100;
 			
 			return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
 					+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
 					+ params.getBetaDistanceToCar() * avgDist;
 			
 		}else {
-			return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
+			if (eventHandler.getEsti()[(int)(trip.getDepartureTime()/3600)]==0)
+			{
+				return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
+						+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
+						+ params.getBetaDistanceToCar() * 100;
+			}
+			else 
+				return params.getConstant() + params.getBetaTravelTime() * prediction.getPredictedTravelTime()
 					+ params.getBetaDistance() * prediction.getPredictedTravelDistance() 
 					+ params.getBetaDistanceToCar() * eventHandler.getEsti()[(int)(trip.getDepartureTime()/3600)];
 		}

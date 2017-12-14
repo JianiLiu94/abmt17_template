@@ -3,6 +3,7 @@ package ch.ethz.matsim.courses.abmt17_template;
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.contrib.carsharing.config.CarsharingConfigGroup;
+import org.matsim.contrib.carsharing.manager.demand.membership.MembershipContainer;
 import org.matsim.contrib.carsharing.runExample.CarsharingUtils;
 import org.matsim.contrib.carsharing.runExample.RunCarsharing;
 import org.matsim.core.config.Config;
@@ -27,7 +28,6 @@ import ch.ethz.matsim.mode_choice.alternatives.ChainAlternatives;
 import ch.ethz.matsim.mode_choice.alternatives.TripChainAlternatives;
 import ch.ethz.matsim.mode_choice.mnl.BasicModeChoiceAlternative;
 import ch.ethz.matsim.mode_choice.mnl.BasicModeChoiceParameters;
-import ch.ethz.matsim.mode_choice.mnl.ModeChoiceMNL;
 import ch.ethz.matsim.mode_choice.mnl.prediction.CrowflyDistancePredictor;
 import ch.ethz.matsim.mode_choice.mnl.prediction.FixedSpeedPredictor;
 import ch.ethz.matsim.mode_choice.mnl.prediction.HashPredictionCache;
@@ -105,22 +105,22 @@ public class RunScenarioExample {
 			public PredictionCache providePredictionCache() {
 				return new HashPredictionCache();
 			}
-			
+		
 			@Singleton
 			@Provides
 			public ModeChoiceModel provideModeChoiceModel(Network network, @Named("car") TravelTime travelTime,
-					MNLConfigGroup mnlConfig, PredictionCache cache){ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
-				ModeChoiceMNL model = new ModeChoiceMNL(MatsimRandom.getRandom(), chainAlternatives,
-						scenario.getNetwork(), mnlConfig.getMode());			
+					MNLConfigGroup mnlConfig, PredictionCache cache, MembershipContainer membership){ChainAlternatives chainAlternatives = new TripChainAlternatives(false);
+					FFModeChoiceMNL model = new FFModeChoiceMNL(MatsimRandom.getRandom(), chainAlternatives,
+						scenario.getNetwork(), mnlConfig.getMode(), membership);			
 				
-				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(-2.897, -0.26 / 1000.0,
+				BasicModeChoiceParameters ptParameters = new BasicModeChoiceParameters(-2.897, -0.26 / 1000.0 * 0.7718,
 						-11.58 / 3600.0, false);
 				BasicModeChoiceParameters walkParameters = new BasicModeChoiceParameters(0.0, 0.0, -14.799 / 3600.0,
 						false);
 				BasicModeChoiceParameters bikeParameters = new BasicModeChoiceParameters(-1.662, 0.0, -16.277 / 3600.0,
 					    true);
-				CarSharingChoiceParameters freefloatingParameters = new CarSharingChoiceParameters(-0.314, -0.7718/1000.0, -36.5225 / 3600.0,
-						-0.244, false);
+				CarSharingChoiceParameters freefloatingParameters = new CarSharingChoiceParameters(-0.314, -0.26/1000.0 * 0.7718, -36.5225 / 3600.0,
+						-0.0244, false);
 				
 				TripPredictor carPredictor = null;
 
@@ -131,7 +131,7 @@ public class RunScenarioExample {
 									new OnlyTimeDependentTravelDisutility(travelTime), travelTime));
 					break;
 				case CROWFLY:
-					carPredictor = new FixedSpeedPredictor(30.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor());
+					carPredictor = new FixedSpeedPredictor(40.0 * 1000.0 / 3600.0, new CrowflyDistancePredictor());
 					break;
 				default:
 					throw new IllegalStateException();
