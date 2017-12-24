@@ -45,7 +45,7 @@ public class SupplyScript extends MatsimXmlWriter {
 		close();
 	}
 	
-	
+
 	private void writeVehicles() {
 
 		Network network = this.scenario.getNetwork();
