@@ -11,6 +11,7 @@ import org.matsim.core.config.ConfigUtils;
 import org.matsim.contrib.carsharing.config.CarsharingConfigGroup;
 import org.matsim.core.controler.AbstractModule;
 import org.matsim.core.controler.Controler;
+import org.matsim.core.events.handler.EventHandler;
 import org.matsim.core.gbl.MatsimRandom;
 import org.matsim.core.router.costcalculators.OnlyTimeDependentTravelDisutility;
 import org.matsim.core.router.util.TravelTime;
@@ -23,6 +24,7 @@ import com.google.inject.name.Named;
 import abmt17.scoring.ABMTScoringModule;
 import ch.ethz.matsim.baseline_scenario.analysis.simulation.ModeShareListenerModule;
 import ch.ethz.matsim.courses.abmt17_template.events.MyStartRentalEventHandler;
+import ch.ethz.matsim.courses.abmt17_template.events.MyStartRentalEventHandlerQuadTree;
 import ch.ethz.matsim.mode_choice.ModeChoiceModel;
 import ch.ethz.matsim.mode_choice.alternatives.ChainAlternatives;
 import ch.ethz.matsim.mode_choice.alternatives.TripChainAlternatives;
@@ -67,8 +69,6 @@ public class RunScenarioExample {
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 
 		setCaravail.set(scenario, args[1]);
-
-		
 		
 		Controler controler = new Controler(scenario); // Set up simulation controller
 		CarsharingUtils.addConfigModules(config);
@@ -77,14 +77,11 @@ public class RunScenarioExample {
 
 		RunCarsharing.installCarSharing(controler);
 		config.strategy().setMaxAgentPlanMemorySize(1);
-		
-		MyStartRentalEventHandler myHandler = new MyStartRentalEventHandler(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork());
+		MyStartRentalEventHandlerQuadTree myHandler = new MyStartRentalEventHandlerQuadTree(config.controler().getOutputDirectory() + "/startRental.csv", scenario.getNetwork(),
+					                  3600, 200, 2671224, 1236584, 2694915,1259380);
+
 		controler.getEvents().addHandler(myHandler);
 		controler.addControlerListener(myHandler);
-		
-		
-		
-		
 
 		new RemoveLongPlans(10).run(scenario.getPopulation());
 
@@ -137,7 +134,7 @@ public class RunScenarioExample {
 					throw new IllegalStateException();
 				}
 				
-				model.addModeAlternative("freefloating", new CarSharingModeChoiceAlternative(freefloatingParameters, carPredictor, cache, myHandler));
+				model.addModeAlternative("freefloating", new CarSharingModeChoiceAlternativeQuadTree(freefloatingParameters, carPredictor, cache, myHandler));
 				model.addModeAlternative("pt", new BasicModeChoiceAlternative(ptParameters,
 						new FixedSpeedPredictor(11.11111111111111, new CrowflyDistancePredictor())));
 				model.addModeAlternative("walk", new BasicModeChoiceAlternative(walkParameters,
