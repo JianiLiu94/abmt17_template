@@ -68,7 +68,7 @@ public class RunScenarioExample {
 
 		Scenario scenario = ScenarioUtils.loadScenario(config); // Load scenario
 
-		setCaravail.set(scenario, args[1]);
+		setCaravail.set(scenario, args[1], args[2]);
 		
 		Controler controler = new Controler(scenario); // Set up simulation controller
 		CarsharingUtils.addConfigModules(config);

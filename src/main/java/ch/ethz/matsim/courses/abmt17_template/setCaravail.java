@@ -20,8 +20,9 @@ import org.matsim.core.utils.geometry.CoordUtils;
 
 public class setCaravail {
 	
-	static public void set(Scenario scenario, String file){
+	static public void set(Scenario scenario, String file, String file2){
 
+		// set car availability for people in Zurich
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))){
 			String line=reader.readLine();
 			while(line!=null){
@@ -34,6 +35,23 @@ public class setCaravail {
 					setPlanMode(scenario.getPopulation().getPersons().get(personID));
 				}
 				line=reader.readLine();
+			}
+		}
+		catch (IOException e){
+			throw new RuntimeException(e);
+		}
+		
+		
+		
+		// remove people outside of Zurich
+		try (BufferedReader reader2 = new BufferedReader(new FileReader(file2))){
+			String line2=reader2.readLine();
+			line2=reader2.readLine();
+			while(line2!=null){				
+				String[] fields2 = line2.split(",");
+				Id<Person> personID2 = Id.createPersonId(fields2[2]);
+				scenario.getPopulation().removePerson(personID2);
+				line2=reader2.readLine();
 			}
 		}
 		catch (IOException e){
