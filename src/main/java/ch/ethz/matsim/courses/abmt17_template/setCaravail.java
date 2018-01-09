@@ -49,7 +49,7 @@ public class setCaravail {
 			line2=reader2.readLine();
 			while(line2!=null){				
 				String[] fields2 = line2.split(",");
-				Id<Person> personID2 = Id.createPersonId(fields2[2]);
+				Id<Person> personID2 = Id.createPersonId(fields2[1]);
 				scenario.getPopulation().removePerson(personID2);
 				line2=reader2.readLine();
 			}
