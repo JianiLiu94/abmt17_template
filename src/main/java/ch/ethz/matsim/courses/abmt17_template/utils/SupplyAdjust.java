@@ -35,9 +35,9 @@ public class SupplyAdjust extends MatsimXmlWriter{
 		int i=0;
 		try (BufferedReader reader = new BufferedReader(new FileReader(file))){
 			String line=reader.readLine();
-			while(line!=null){
+			while(line!=null&&i<500){
 				
-				String[] fields = line.split(";");
+				String[] fields = line.split(",");
                 System.out.println(i);
 				old.add(fields[4]);
 				writeOldVehicle(i, fields[4], fields[5]);
@@ -48,7 +48,7 @@ public class SupplyAdjust extends MatsimXmlWriter{
 		catch (IOException e){
 			throw new RuntimeException(e);
 		}
-		System.out.println("done");
+//		System.out.println("done");
 	}
 	
 	private void writeOldVehicle(int id, String X, String Y) {
@@ -84,8 +84,10 @@ public class SupplyAdjust extends MatsimXmlWriter{
 		Network network = this.scenario.getNetwork();
 		//here you set up how many cars you want
 		int cars = 500;
-		keepOld("//data.bauwelt.ethz.ch/liujia/Downloads/startRental_80_2000.csv");
-		Object[] array = network.getLinks().values().toArray();
+		keepOld("E:/ETH Semester 3/JAVA/abmt17_template/outputs/startRental4.csv");
+		if (old.size()<cars) {
+		System.out.println("need to add more random vehicles");
+			Object[] array = network.getLinks().values().toArray();
 		
 		int numberLinks = array.length;
 		Random r = new Random(456);
@@ -110,7 +112,8 @@ public class SupplyAdjust extends MatsimXmlWriter{
 			else{
 				i--;
 			}
-		}		
+		}
+		}
 	}
 
 	
